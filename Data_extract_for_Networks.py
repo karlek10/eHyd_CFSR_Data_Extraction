@@ -138,9 +138,7 @@ def extract_CFSR_else(file_path, list_files=None, num=0, start_date=None, end_da
             return data
         else:
             return data 
-
-        
-
+            
 def extract_zamg_temp_solar(file_path, start_date=None, end_date=None, feat=None):
     """
     Parameters
@@ -169,8 +167,6 @@ def extract_zamg_temp_solar(file_path, start_date=None, end_date=None, feat=None
         d[feature] = data[col].astype("float32").dropna(axis=1, thresh=len(data)-100) # drops column if more than 100 nan    
     d = {f:d[f] for f in feat}
     return d # returns the dictionary
-
-
 
 def extract_ITA_p(file_path, list_files=None, num=0, start_date=None, end_date=None, avg=None):
     df = pd.read_excel(file_path, usecols=([1,2,3,4]), )
@@ -298,9 +294,9 @@ if __name__ == "__main__":
     
     # # enter file name for saving training data
     file_name = basin_name +"_data.csv"
-    df_name.to_csv("D:\OneDrive\Python\\11_LSTM_RNN\input_data\\" + file_name, encoding = "windows-1250")
+    df_name.to_csv("D:\\OneDrive\\Python\\11_LSTM_RNN\input_data\\" + file_name, encoding = "windows-1250")
     print ("Done. The data has been prepared for traing in file {}.".format(file_name))
         
     
-    # b = eHyd_precip("D:\OneDrive\Python\\10_eHyd_Data_Extraction\input_data\\rain\\N-Tagessummen-102319.csv")    
+    # b = eHyd_precip("D:\\OneDrive\\Python\\10_eHyd_Data_Extraction\input_data\\rain\\N-Tagessummen-102319.csv")    
     
