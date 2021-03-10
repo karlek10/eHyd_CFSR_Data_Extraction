@@ -291,7 +291,6 @@ if __name__ == "__main__":
     data = pd.concat([runoff_meas, precip_meas, precip_ita,], axis = 1)
     df_name = pd.DataFrame(data)
 
-    
     # # enter file name for saving training data
     file_name = basin_name +"_data.csv"
     df_name.to_csv("D:\\OneDrive\\Python\\11_LSTM_RNN\input_data\\" + file_name, encoding = "windows-1250")
