@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
+# import seaborn as sns
 import matplotlib.dates as mdates
 
 def extract_eHyd(file_path, list_files=None, num=0, start_date=None, end_date=None, avg=None):
@@ -65,8 +65,8 @@ def extraction_main(function, basin, folder, start_date=None, end_date = None, a
     df_comp : dataframe - variable value
     """
     owd = os.getcwd() # gets the workign dir
-    list_files = os.listdir("input_data/" + basin+ "/" + folder + "/") # creates a list of files in the dir
-    os.chdir("input_data/" + basin+ "/" + folder + "/") # changes working dir
+    list_files = os.listdir("D:\\01_Raw_input_data\\" + basin + "/" + folder + "/") # creates a list of files in the dir
+    os.chdir("D:\\01_Raw_input_data\\" + basin+ "/" + folder + "/") # changes working dir
     dict_frames= [function(file, list_files, num, start_date, end_date, avg) for num, file in enumerate(list_files)] # creates a dictionary of df-s
     os.chdir(owd) # returns to dir with the script
     df_comp = pd.concat(dict_frames, axis=1) # creates a df with all stations
@@ -93,6 +93,7 @@ def extract_CFSR_temp(file_path, list_files=None, num=0, start_date=None, end_da
         date = pd.to_datetime(str(int(df.loc[0][0])))
         dates = pd.date_range(date, periods=len(df)-1, freq="D")
         data = df.iloc[1:].set_index(dates)
+        print ("Done converting {}/{} --> {}.".format(num+1, len(list_files),st_name))
         if start_date is not None and end_date is not None:
             data = data[(data.index >= start_date) & (data.index <= end_date)] # start and stop date
             return data
@@ -127,6 +128,7 @@ def extract_CFSR_else(file_path, list_files=None, num=0, start_date=None, end_da
         date = pd.to_datetime(str(int(df.loc[0][0])))
         dates = pd.date_range(date, periods=len(df)-1, freq="D")
         data = df.iloc[1:].set_index(dates)
+        print ("Done converting {}/{} --> {}.".format(num+1, len(list_files),st_name))
         if start_date is not None and end_date is not None:
             data = data[(data.index >= start_date) & (data.index <= end_date)] # start and stop date
             return data
@@ -169,15 +171,20 @@ def extract_zamg_temp_solar(file_path, start_date=None, end_date=None, feat=None
     return d # returns the dictionary
 
 def extract_ITA_p(file_path, list_files=None, num=0, start_date=None, end_date=None, avg=None):
-    df = pd.read_excel(file_path, usecols=([1,2,3,4]), )
-    st_name = df.iloc[3,1].split("-")[0]
-    data = df.iloc[12:, :]
+    df = pd.read_excel(file_path, usecols=([1,2,3,4,5]), )
+    st_name = df.iloc[5,1].split(" / ")[0]
+    data = df.iloc[13:, :]
     data = data.rename(columns=lambda x: x.strip())
-    data = data.rename({"Unnamed: 1":"Date", 
-                    "AUTONOME PROVINZ BOZEN":"Prec_"+st_name, 
-                    "PROVINCIA AUTONOMA DI BOLZANO":"MAX_T_"+st_name,
-                    "Unnamed: 4":"MIN_T_"+st_name}, axis=1)
-    data = data.set_index("Date").replace(",", ".", regex=True).replace(" ---", np.NaN, regex=True).replace("---", np.NaN, regex=True).astype("float32")
+    data = data.rename({data.columns[1]:"Date", 
+                        data.columns[2]:"Prec_"+st_name, 
+                        data.columns[3]:"MIN_T_"+st_name,
+                        data.columns[4]:"MAX_T_"+st_name}, axis=1)
+    data = data[data.columns[1:]].set_index("Date")
+    data.index = pd.to_datetime(data.index, dayfirst=True)
+    data = data.replace(",", ".", regex=True)\
+        .replace(" ---", np.NaN, regex=True).replace("---", np.NaN, regex=True)\
+        .replace(np.NaN, 0, regex=True).astype("float32")    
+    print ("Done converting {}/{} --> {}.".format(num+1, len(list_files),st_name))
     if start_date is not None and end_date is not None:
         data = data[(data.index >= start_date) & (data.index < end_date)] # start and stop date
         data_p = data.iloc[:, ::3]
@@ -195,15 +202,20 @@ def extract_ITA_p(file_path, list_files=None, num=0, start_date=None, end_date=N
         return data_p
         
 def extract_ITA_temp(file_path, list_files=None, num=0, start_date=None, end_date=None, avg=None):
-    df = pd.read_excel(file_path, usecols=([1,2,3,4]), )
-    st_name = df.iloc[3,1].split("-")[0]
-    data = df.iloc[12:, :]
+    df = pd.read_excel(file_path, usecols=([1,2,3,4,5]), )
+    st_name = df.iloc[5,1].split(" / ")[0]
+    data = df.iloc[13:, :]
     data = data.rename(columns=lambda x: x.strip())
-    data = data.rename({"Unnamed: 1":"Date", 
-                    "AUTONOME PROVINZ BOZEN":"Prec_"+st_name, 
-                    "PROVINCIA AUTONOMA DI BOLZANO":"MAX_T_"+st_name,
-                    "Unnamed: 4":"MIN_T_"+st_name}, axis=1)
-    data = data.set_index("Date").replace(",", ".", regex=True).replace(" ---", np.NaN, regex=True).replace("---", np.NaN, regex=True).astype("float32")
+    data = data.rename({data.columns[1]:"Date", 
+                        data.columns[2]:"Prec_"+st_name, 
+                        data.columns[3]:"MIN_T_"+st_name,
+                        data.columns[4]:"MAX_T_"+st_name}, axis=1)
+    data = data[data.columns[1:]].set_index("Date")
+    data.index = pd.to_datetime(data.index, dayfirst=True)
+    data = data.replace(",", ".", regex=True)\
+        .replace(" ---", np.NaN, regex=True).replace("---", np.NaN, regex=True)\
+        .replace(np.NaN, 0, regex=True).astype("float32")    
+    print ("Done converting {}/{} --> {}.".format(num+1, len(list_files),st_name))
     if start_date is not None and end_date is not None:
         data = data[(data.index >= start_date) & (data.index < end_date)] # start and stop date
         data_temp = data.iloc[:, 1::1]
@@ -235,46 +247,56 @@ def extract_ITA_temp(file_path, list_files=None, num=0, start_date=None, end_dat
  
 
 if __name__ == "__main__":
-        
-    # df = extract_eHyd_extract("D:\OneDrive\Python\\10_eHyd_CFSR_Data_Extraction\input_data\snow_depth\\SH-Tageswerte-103705.csv", list_files=["32",], start_date="2000-01-01")
     
-    # df = extract_eHyd("D:\\OneDrive\Python\\10_eHyd_CFSR_Data_Extraction\\input_data\\Sill\\rain\\N-Tagessummen-103085.csv", list_files=["32",], start_date="2000-01-01")
+    """
+    EXAMPLES of how to use functions:
     
-    # temp = extraction_main(extract_CFSR_temp, basin = "Sill", folder = "temp_min_max_CFSR",)
+    df = extract_eHyd_extract("D:\OneDrive\Python\\10_eHyd_CFSR_Data_Extraction\input_data\snow_depth\\SH-Tageswerte-103705.csv", list_files=["32",], start_date="2000-01-01")
     
-    # rel_hum = extraction_main(extract_CFSR_else, basin= "Sill", folder = "humidity_CFSR",)
+    df = extract_eHyd("D:\\OneDrive\Python\\10_eHyd_CFSR_Data_Extraction\\input_data\\Sill\\rain\\N-Tagessummen-103085.csv", list_files=["32",], start_date="2000-01-01")
+    
+    temp = extraction_main(extract_CFSR_temp, basin = "Sill", folder = "temp_min_max_CFSR",)
+    
+    rel_hum = extraction_main(extract_CFSR_else, basin= "Sill", folder = "humidity_CFSR",)
      
-    # solar = extraction_main(extract_CFSR_else, basin="Sill", folder="solar_rad_CFSR")
-   
-   
-    # plot_timeseries(df) # change ylabel if not plotting runoff
+    solar = extraction_main(extract_CFSR_else, basin="Sill", folder="solar_rad_CFSR")
+       
+       
+    plot_timeseries(df) # change ylabel if not plotting runoff
      
     
-    # temp = extract_CFSR_temp("input_data/temp_min_max_CFSR/t470122.txt", )
+    temp = extract_CFSR_temp("input_data/temp_min_max_CFSR/t470122.txt", )
     
-    # list containing datatypes for training, default are runoff and measured precipitation
+    list containing datatypes for training, default are runoff and measured precipitation
     
+    """
     
     
     # ====== PARAMETERS ======
-    basin_name = "Drava"
-    start_date = "2008-01-01"
-    end_date = "2015-01-01"
+    basin_name = "Isel"
+    start_date = "2000-02-18" # including
+    end_date = "2014-01-01" #excluding
     avg = True
+    runoff_st = ["Lienz", "Hopfgarten i. Def.-Zwenewald", "Brühl"] # list of runoff station to include in output 
     # =======================
     
-    # hum_cfsr = extraction_main(extract_CFSR_else, basin= basin_name, folder = "humidity_CFSR", start_date=start_date, end_date=end_date)
-    # solar_cfsr = extraction_main(extract_CFSR_else, basin=basin_name, folder="solar_rad_CFSR", start_date=start_date, end_date=end_date)
-    # temp_cfsr = extraction_main(extract_CFSR_temp, basin = basin_name, folder = "temp_min_max_CFSR", start_date=start_date, end_date=end_date)
-    # wind_cfsr = extraction_main(extract_CFSR_else, basin=basin_name, folder="wind_CFSR", start_date=start_date, end_date=end_date)
+    
+    
+    hum_cfsr = extraction_main(extract_CFSR_else, basin= basin_name, folder = "humidity_CFSR", start_date=start_date, end_date=end_date)
+    solar_cfsr = extraction_main(extract_CFSR_else, basin=basin_name, folder="solar_rad_CFSR", start_date=start_date, end_date=end_date)
+    temp_cfsr = extraction_main(extract_CFSR_temp, basin = basin_name, folder = "temp_min_max_CFSR", start_date=start_date, end_date=end_date)
+    wind_cfsr = extraction_main(extract_CFSR_else, basin=basin_name, folder="wind_CFSR", start_date=start_date, end_date=end_date)
     
     
     # ===== PREPARING METEOROLOGICAL DATA ======
+
+    
     precip_ita = extraction_main(extract_ITA_p, basin=basin_name, folder = "rain_ITA", start_date=start_date, end_date=end_date)
     
+    precip_aut = extraction_main(extract_eHyd, basin=basin_name, folder = "rain", start_date=start_date, end_date=end_date)
     #temp_ita = extraction_main(extract_ITA_temp, basin=basin_name, folder = "rain_ITA", start_date=start_date, end_date=end_date, avg=avg)
     
-    precip_meas = extraction_main(extract_eHyd, basin=basin_name, folder = "rain", start_date=start_date, end_date=end_date)
+    snow_meas = extraction_main(extract_eHyd, basin=basin_name, folder = "snow_depth", start_date=start_date, end_date=end_date)
     
     # temp_zamg = extract_zamg_temp_solar("D:\OneDrive\Python\\10_eHyd_CFSR_Data_Extraction\input_data\ZAMG_data\\daten_20000101_20151231.csv", 
     #                                     start_date=start_date, end_date=end_date, feat=["t",])["t"][[17901, 19505, 17701]]
@@ -283,18 +305,18 @@ if __name__ == "__main__":
     # ===== PREPARING RUNOFF DATA ===============
     runoff_meas = extraction_main(extract_eHyd, basin=basin_name, folder = "runoff", start_date=start_date, end_date=end_date)
     # #change order of runoff gauges if outlet not first
-    runoff_meas = runoff_meas[["Lienz-Falkensteinsteg", "Ausservillgraten", "Rabland"]]  
+    runoff_meas = runoff_meas[runoff_st]  
     # ==========================================
     
     # # CONCATENING TRAINIGN DATA
     df_name = "%s_data" % basin_name.lower()
-    data = pd.concat([runoff_meas, precip_meas, precip_ita,], axis = 1)
+    data = pd.concat([runoff_meas, precip_aut, precip_ita, temp_cfsr, hum_cfsr, solar_cfsr, wind_cfsr, snow_meas,], axis = 1)
     df_name = pd.DataFrame(data)
 
     # # enter file name for saving training data
-    file_name = basin_name +"_data.csv"
-    df_name.to_csv("D:\\OneDrive\\Python\\11_LSTM_RNN\input_data\\" + file_name, encoding = "windows-1250")
-    print ("Done. The data has been prepared for traing in file {}.".format(file_name))
+    file_name = basin_name +"_meteo_data.csv"
+    df_name.to_csv("D:\\02_Model_input_ConvLSTM\\METEO/"+ basin_name +"/" + file_name, encoding = "windows-1250")
+    print ("Done. The data has been prepared for traning in file {}.".format(file_name))
         
     
     # b = eHyd_precip("D:\\OneDrive\\Python\\10_eHyd_Data_Extraction\input_data\\rain\\N-Tagessummen-102319.csv")    
